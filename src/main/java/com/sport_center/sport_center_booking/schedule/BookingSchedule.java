@@ -40,7 +40,7 @@ public class BookingSchedule {
      */
     @Scheduled(cron = "0/5 * * * * ?")
     public void executeKeepAlive() {
-        executeFetchQidInfo();
+
         if (isAroundSkipTimeRange()) {
             log.info("[BookingSchedule] skip executeKeepAlive");
             return;
