@@ -1,6 +1,7 @@
 package com.sport_center.sport_center_booking.service.impl;
 
 import com.sport_center.sport_center_booking.enums.ActionEnum;
+import com.sport_center.sport_center_booking.enums.PlatformCodeEnum;
 import com.sport_center.sport_center_booking.enums.SportCenterSettingEnum;
 import com.sport_center.sport_center_booking.enums.TimePeriodCode;
 import com.sport_center.sport_center_booking.request.SportCenterRequest;
@@ -41,7 +42,7 @@ public abstract class SportCenterBookingImpl implements IBookingService {
     }
 
     @Override
-    public void doBooking(int qPid, int qTime) throws InterruptedException, ExecutionException {
+    public void doBooking(PlatformCodeEnum platformCodeEnum, int qTime) throws InterruptedException, ExecutionException {
         if (url == null) {
             getDomainUrl();
         }
@@ -53,19 +54,28 @@ public abstract class SportCenterBookingImpl implements IBookingService {
         requestDto.setModule("net_booking");
         requestDto.setFiles("booking_place");
         requestDto.setStepFlag(25);
-        requestDto.setQPid(qPid);
+        requestDto.setQPid(platformCodeEnum.getCode());
         requestDto.setQTime(qTime);
         requestDto.setPT(1);
-        List<Callable<Void>> tasks = new ArrayList<>();
-        tasks.add(() -> {
-            HttpHandler.doRequest(requestDto, url, ActionEnum.BOOKING, SETTING);
-            return null;
-        });
-        //會開啟兩個線程同時搶場地
-        List<Future<Void>> futures = executorService.invokeAll(tasks);
+        //會開啟兩個線程同時搶一個時段的場地
+        List<Future<Void>> futures = executorService.invokeAll(getTaskList(requestDto,2));
         for (Future<Void> future : futures) {
             future.get();
         }
+    }
+
+    /**
+     * 啟動幾個執行緒搶場地
+     */
+    private List<Callable<Void>> getTaskList(SportCenterRequest requestDto, int times) {
+        List<Callable<Void>> tasks = new ArrayList<>();
+        for(int i = 0 ; i < times; i++) {
+            tasks.add(() -> {
+                HttpHandler.doRequest(requestDto, url, ActionEnum.BOOKING, SETTING);
+                return null;
+            });
+        }
+        return tasks;
     }
 
     @Override

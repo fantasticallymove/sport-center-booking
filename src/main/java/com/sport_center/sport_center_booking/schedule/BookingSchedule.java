@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+import static com.sport_center.sport_center_booking.enums.PlatformCodeEnum.*;
+
 @Component
 @Slf4j
 public class BookingSchedule {
@@ -40,7 +42,7 @@ public class BookingSchedule {
      */
     @Scheduled(cron = "0/5 * * * * ?")
     public void executeKeepAlive() {
-
+        executeFetchQidInfo();
         if (isAroundSkipTimeRange()) {
             log.info("[BookingSchedule] skip executeKeepAlive");
             return;
@@ -81,38 +83,58 @@ public class BookingSchedule {
     public void executeBooking() {
         log.info("[BookingSchedule] start executeBooking.");
         try {
-            // Send requests asynchronously
             CompletableFuture<Void> responseFuture1 = CompletableFuture.runAsync(() -> {
                 try {
-                    nanGangSportsCenterBookingImpl.doBooking(88, 8);
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_55, 10);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
             CompletableFuture<Void> responseFuture2 = CompletableFuture.runAsync(() -> {
                 try {
-                    daTongSportCenterBookingImpl.doBooking(0, 0);
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_55, 11);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
+
             CompletableFuture<Void> responseFuture3 = CompletableFuture.runAsync(() -> {
                 try {
-                    neiHuSportCenterBookingImpl.doBooking(87, 18);
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_56, 10);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
             CompletableFuture<Void> responseFuture4 = CompletableFuture.runAsync(() -> {
                 try {
-                    xinYiSportsCenterBookingImpl.doBooking(0, 0);
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_56, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture5 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_52, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture6 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(DA_TONG_52, 11);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
 
             // Combine futures and handle completion
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(responseFuture1, responseFuture2, responseFuture3, responseFuture4);
+            CompletableFuture<Void> allOf =
+                    CompletableFuture.allOf(responseFuture1,
+                            responseFuture2,
+                            responseFuture3,
+                            responseFuture4,
+                            responseFuture5,
+                            responseFuture6);
 
             allOf.thenRun(() -> {
                 try {
@@ -120,6 +142,8 @@ public class BookingSchedule {
                     responseFuture2.get();
                     responseFuture3.get();
                     responseFuture4.get();
+                    responseFuture5.get();
+                    responseFuture6.get();
                 } catch (Exception e) {
                     log.info("[BookingSchedule] error.", e);
                 }
@@ -136,35 +160,35 @@ public class BookingSchedule {
     /**
      * 自動抓取場地碼排程
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+//    @Scheduled(cron = "0 0 0 * * ?")
     public void executeFetchQidInfo() {
         log.info("[BookingSchedule] start executeFetchQidInfo.");
         try {
             // Send requests asynchronously
             CompletableFuture<Void> responseFuture1 = CompletableFuture.runAsync(() -> {
                 try {
-                    nanGangSportsCenterBookingImpl.fetchQidInfo(TimePeriodCode.NIGHT);
+                    nanGangSportsCenterBookingImpl.fetchQidInfo(TimePeriodCode.MORNING);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
             CompletableFuture<Void> responseFuture2 = CompletableFuture.runAsync(() -> {
                 try {
-                    daTongSportCenterBookingImpl.fetchQidInfo(TimePeriodCode.NIGHT);
+                    daTongSportCenterBookingImpl.fetchQidInfo(TimePeriodCode.MORNING);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
             CompletableFuture<Void> responseFuture3 = CompletableFuture.runAsync(() -> {
                 try {
-                    neiHuSportCenterBookingImpl.fetchQidInfo(TimePeriodCode.NIGHT);
+                    neiHuSportCenterBookingImpl.fetchQidInfo(TimePeriodCode.MORNING);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
             });
             CompletableFuture<Void> responseFuture4 = CompletableFuture.runAsync(() -> {
                 try {
-                    xinYiSportsCenterBookingImpl.fetchQidInfo(TimePeriodCode.NIGHT);
+                    xinYiSportsCenterBookingImpl.fetchQidInfo(TimePeriodCode.MORNING);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
@@ -182,6 +206,7 @@ public class BookingSchedule {
                 } catch (Exception e) {
                     log.info("[BookingSchedule] error.", e);
                 }
+                System.exit(1);
             }).exceptionally(ex -> {
                 log.info("[BookingSchedule] exceptionally error.", ex);
                 System.exit(1);
