@@ -42,7 +42,6 @@ public class BookingSchedule {
      */
     @Scheduled(cron = "0/5 * * * * ?")
     public void executeKeepAlive() {
-        executeFetchQidInfo();
         if (isAroundSkipTimeRange()) {
             log.info("[BookingSchedule] skip executeKeepAlive");
             return;
@@ -80,8 +79,10 @@ public class BookingSchedule {
      * 自動預約排程
      */
     @Scheduled(cron = "0 0 0 * * ?")
-    public void executeBooking() {
+    public void executeBooking() throws InterruptedException {
         log.info("[BookingSchedule] start executeBooking.");
+        //會有過早啟動的問題 這邊要煞車100ms
+        Thread.sleep(100L);
         try {
             CompletableFuture<Void> responseFuture1 = CompletableFuture.runAsync(() -> {
                 try {
@@ -127,6 +128,51 @@ public class BookingSchedule {
                 }
             });
 
+
+            CompletableFuture<Void> responseFuture7 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_1, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture8 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_1, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture9 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_2, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture10 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_2, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture11 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_5, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+            CompletableFuture<Void> responseFuture12 = CompletableFuture.runAsync(() -> {
+                try {
+                    daTongSportCenterBookingImpl.doBooking(NEI_HU_5, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+            });
+
+
             // Combine futures and handle completion
             CompletableFuture<Void> allOf =
                     CompletableFuture.allOf(responseFuture1,
@@ -134,7 +180,13 @@ public class BookingSchedule {
                             responseFuture3,
                             responseFuture4,
                             responseFuture5,
-                            responseFuture6);
+                            responseFuture6,
+                            responseFuture7,
+                            responseFuture8,
+                            responseFuture9,
+                            responseFuture10,
+                            responseFuture11,
+                            responseFuture12);
 
             allOf.thenRun(() -> {
                 try {
@@ -144,6 +196,13 @@ public class BookingSchedule {
                     responseFuture4.get();
                     responseFuture5.get();
                     responseFuture6.get();
+
+                    responseFuture7.get();
+                    responseFuture8.get();
+                    responseFuture9.get();
+                    responseFuture10.get();
+                    responseFuture11.get();
+                    responseFuture12.get();
                 } catch (Exception e) {
                     log.info("[BookingSchedule] error.", e);
                 }
@@ -219,11 +278,17 @@ public class BookingSchedule {
 
     /**
      * 是否在不執行Session續約的期間內, 這段時間伺服器刷新很大會容易害執行緒卡死, 故略過執行
+     * 換日第一分中內也不請求去佔用掉執行緒的數量
      */
     private boolean isAroundSkipTimeRange() {
         LocalTime now = LocalTime.now();
-        LocalTime targetTimeStart = LocalTime.of(23, 58, 0);
+        LocalTime targetTimeStart = LocalTime.of(23, 59, 0);
         LocalTime targetTimeEnd = LocalTime.of(23, 59, 59);
-        return now.isAfter(targetTimeStart) && now.isBefore(targetTimeEnd);
+
+        LocalTime targetTimeStart1 = LocalTime.of(0, 0, 0);
+        LocalTime targetTimeEnd1 = LocalTime.of(0, 1, 59);
+        return (now.isAfter(targetTimeStart) && now.isBefore(targetTimeEnd))
+                ||
+                (now.isAfter(targetTimeStart1) && now.isBefore(targetTimeEnd1));
     }
 }
