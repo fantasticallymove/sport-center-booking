@@ -11,7 +11,7 @@ public class SpringScheduleConfig {
     @Bean
     public ThreadPoolTaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setPoolSize(6);
+        scheduler.setPoolSize(16);
         scheduler.setThreadNamePrefix("customized-scheduled-task-");
         scheduler.initialize();
         return scheduler;
