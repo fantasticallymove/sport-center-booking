@@ -129,7 +129,7 @@ public abstract class SportCenterBookingImpl implements IBookingService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MMM-dd hh:mm:ss");
 
             // 連接到網站並解析 HTML 文檔
-            Document doc = Jsoup.connect(url).cookie("ASP.NET_SessionId", SETTING.getAspToken()).get();
+            Document doc = Jsoup.connect(url).timeout(180000).cookie("ASP.NET_SessionId", SETTING.getAspToken()).get();
 
             StringBuilder content = new StringBuilder();
 
