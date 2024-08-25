@@ -80,6 +80,11 @@ public abstract class SportCenterBookingImpl implements IBookingService {
 
     @Override
     public void keepAlive() throws InterruptedException, IOException {
+        if (!SETTING.isAutoBookingEnabled()) {
+            log.info("[{}] keepAlive disabled.", SETTING.getChName());
+            return;
+        }
+
         if (url == null) {
             getDomainUrl();
         }
