@@ -19,6 +19,8 @@ public class BookingSchedule {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+    private ExecutorService bookingThreadPool = Executors.newFixedThreadPool(16);
+
     private final IBookingService nanGangSportsCenterBookingImpl;
 
     private final IBookingService daTongSportCenterBookingImpl;
@@ -84,133 +86,104 @@ public class BookingSchedule {
         //會有過早啟動的問題 這邊要煞車100ms
         Thread.sleep(100L);
         try {
-            CompletableFuture<Void> responseFuture1 = CompletableFuture.runAsync(() -> {
+            CompletableFuture.supplyAsync(() -> {
                 try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_55, 10);
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_A, 10);
                 } catch (Exception e) {
                     log.info("[BookingSchedule] CompletableFuture error", e);
                 }
-            });
-            CompletableFuture<Void> responseFuture2 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_55, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-
-            CompletableFuture<Void> responseFuture3 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_56, 10);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture4 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_56, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture5 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_52, 10);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture6 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(DA_TONG_52, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-
-
-            CompletableFuture<Void> responseFuture7 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_1, 10);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture8 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_1, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture9 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_2, 10);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture10 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_2, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture11 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_5, 10);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-            CompletableFuture<Void> responseFuture12 = CompletableFuture.runAsync(() -> {
-                try {
-                    daTongSportCenterBookingImpl.doBooking(NEI_HU_5, 11);
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] CompletableFuture error", e);
-                }
-            });
-
-
-            // Combine futures and handle completion
-            CompletableFuture<Void> allOf =
-                    CompletableFuture.allOf(responseFuture1,
-                            responseFuture2,
-                            responseFuture3,
-                            responseFuture4,
-                            responseFuture5,
-                            responseFuture6,
-                            responseFuture7,
-                            responseFuture8,
-                            responseFuture9,
-                            responseFuture10,
-                            responseFuture11,
-                            responseFuture12);
-
-            allOf.thenRun(() -> {
-                try {
-                    responseFuture1.get();
-                    responseFuture2.get();
-                    responseFuture3.get();
-                    responseFuture4.get();
-                    responseFuture5.get();
-                    responseFuture6.get();
-
-                    responseFuture7.get();
-                    responseFuture8.get();
-                    responseFuture9.get();
-                    responseFuture10.get();
-                    responseFuture11.get();
-                    responseFuture12.get();
-                } catch (Exception e) {
-                    log.info("[BookingSchedule] error.", e);
-                }
-            }).exceptionally(ex -> {
-                log.info("[BookingSchedule] exceptionally error.", ex);
-                System.exit(1);
                 return null;
-            });
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_B, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_C, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_D, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_E, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_F, 10);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+
+
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_A, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_B, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_C, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_D, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_E, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
+            CompletableFuture.supplyAsync(() -> {
+                try {
+                    nanGangSportsCenterBookingImpl.doBooking(NAN_GANG_F, 11);
+                } catch (Exception e) {
+                    log.info("[BookingSchedule] CompletableFuture error", e);
+                }
+                return null;
+            }, bookingThreadPool);
         } catch (Exception exception) {
             log.info("[BookingSchedule] throws an exception.", exception);
         }

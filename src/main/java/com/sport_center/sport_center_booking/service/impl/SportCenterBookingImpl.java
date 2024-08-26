@@ -30,8 +30,6 @@ public abstract class SportCenterBookingImpl implements IBookingService {
 
     public SportCenterSettingEnum SETTING = SportCenterSettingEnum.NEI_HU;
 
-    public final ExecutorService executorService = Executors.newFixedThreadPool(2);
-
     public final MailUtil mailUtil;
 
     private String username;
@@ -42,7 +40,7 @@ public abstract class SportCenterBookingImpl implements IBookingService {
     }
 
     @Override
-    public void doBooking(PlatformCodeEnum platformCodeEnum, int qTime) throws InterruptedException, ExecutionException {
+    public void doBooking(PlatformCodeEnum platformCodeEnum, int qTime) {
         if (url == null) {
             getDomainUrl();
         }
@@ -57,11 +55,7 @@ public abstract class SportCenterBookingImpl implements IBookingService {
         requestDto.setQPid(platformCodeEnum.getCode());
         requestDto.setQTime(qTime);
         requestDto.setPT(1);
-        //會開啟兩個線程同時搶一個時段的場地
-        List<Future<Void>> futures = executorService.invokeAll(getTaskList(requestDto,2));
-        for (Future<Void> future : futures) {
-            future.get();
-        }
+        HttpHandler.doRequest(requestDto, url, ActionEnum.BOOKING, SETTING);
     }
 
     /**
